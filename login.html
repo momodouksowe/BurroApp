@@ -1,0 +1,91 @@
+<html>
+   <head>
+            <link rel="shortcut icon" href="images/favicon.ico">
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+            <title> Go Easy!</title>
+            <link rel="stylesheet" href="css/style.css">
+            <script type="text/javascript" src="js/jquery-1.12.1.js"></script>
+   </head>
+      
+      <script>
+      function hashCode(str)  
+          {  
+            var arr1 = [];  
+            for (var n = 0, l = str.length; n < l; n ++)   
+            {  
+            var hex = Number(str.charCodeAt(n)).toString(16);  
+            arr1.push(hex);  
+            }  
+          return arr1.join('');  
+      }  
+  
+      function Login() {
+            var username=document.getElementById("username").value;
+            var password=document.getElementById("password").value;
+
+          if((password=="") || (username=="")){
+             return window.alert("fill the empty field");
+            }
+            var passCode=hashCode(password);
+            var xhttp, xmlDoc, userText, x, y,pass,i, WrongEntry;
+            xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+                 xmlDoc = xhttp.responseXML;
+                  x = xmlDoc.getElementsByTagName("username");
+                  y = xmlDoc.getElementsByTagName("userPass");
+
+                  for (i = 0; i < x.length; i++) {
+                    userText = x[i].childNodes[0].nodeValue;
+                    pass = y[i].childNodes[0].nodeValue;
+                   if ((userText.toLowerCase()== username.toLowerCase()) && (pass == passCode.toUpperCase())){
+                    document.getElementById("header").innerHTML="";
+                      window.location.assign( "GoEasy.html");
+                    }else{
+                    WrongEntry="<strong style='color:red;'>Wrong Entry!</strong>";
+                    document.getElementById("header").innerHTML=WrongEntry;
+                   }
+                   
+                }
+              }
+
+            };
+            xhttp.open("GET","Users.xml",true);
+            xhttp.send();
+  }
+
+      function Reload(){
+          var xmlhttp;
+        if (window.XMLHttpRequest) {
+          xmlhttp = new XMLHttpRequest();
+        }else{
+          xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+          }
+          xmlhttp.open("GET","DBSearch.php?cmd=1",true);
+          xmlhttp.send();
+  }
+  </script>
+      
+   <body>
+
+    <div id="wrapper">
+    <div name="login-form" class="login-form" action="" method="post">
+    <div class="header" id="header">
+        <img src="images/logo.jpg" style="float:right;height: 100px; width: 300px; max-width: 20%;height: auto;margin-top: -10%; margin-left: 30%; position: absolute;"></img>
+        <h1>Login</h1>
+    </div>
+        <div class="content">
+        <input id="username" type="text" class="input username"  placeholder="username" autocomplete="on">
+        <input id="password" type="password" class="input password"  placeholder="password" autocomplete="on"> <br><br>
+        </div>
+
+        <div class="footer">
+          <input type="button" name="submit" value="Login" class="button" onclick="Login()">
+          <input type='submit' onclick="Reload()" value="Refresh Credentials">
+        </div>
+      </div>
+    </div>
+     
+   </body>
+</html>

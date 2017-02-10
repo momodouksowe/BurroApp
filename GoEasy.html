@@ -1,0 +1,315 @@
+  <!DOCTYPE html>
+  <html>
+  <head>
+  	  <link rel="shortcut icon" href="images/favicon.ico">
+      <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"> -->
+      <meta name="viewport" content="user-scalable = yes">
+
+  	  <title> Go Easy!</title>
+    	   <link rel="stylesheet" href="css/style.css">
+        <script type="text/javascript" src="js/jquery-1.12.1.js"></script>
+
+        <center>
+        <h1>Go Easy!</h1>
+        <input type="text" name="txtSearch" id ="word" placeholder = "Search by Party ID, PartyName, PhoneNo. Type or City/Town" autocomplete="on">
+        <input type='submit' onclick="SearchPartyDetails()" value="Search">
+        </center>
+
+        <p id='FirstButton' style="margin-left:22.3%;"></p>
+        <p id='PartyNote' style="margin-left:22.3%;"></p>
+        <div style="overflow-x:auto;"><table align="center" id="FirstTable"></table></div>
+        <p id='PartyResult' style="margin-left:42.3%;"></p>
+
+        <p id='customerName' style="margin-top:3%;"></p>
+        <p id='SecondButton' style="margin-left:22.3%;margin-top:1%;"></p>
+        <p id='SalesNote' style="margin-left:22.3%;"></p>
+        <div style="overflow-x:auto;"><table align="center" id="SecondTable"></table></div>
+
+        <p id='ThirdButton' style="margin-left:22.3%;"></p>
+
+  </head>
+
+  <body>
+
+    <script>
+    var IdElement, tempCustomer;
+  function VerifyServerResponse(xhr, status){
+          if(status!="success"){
+            window.alert("Error sending Request");
+            return;
+          }
+          var obj=JSON.parse(xhr.responseText);
+          loading(obj);
+          if(obj.result==0){
+            window.alert(obj.message);
+          }else{
+              return obj; 
+      }
+  }
+
+  function SearchPartyDetailsComplete(xhr,status){
+            var obj = VerifyServerResponse(xhr,status);
+            var table="<table><th>Party ID</th><th>Party Name</th><th>Phone Number</th><th>City Town</th><th>Party Type</th><th>Credit Limit GHC</th><th>Paid T90 GHC</th><th>Acc Balance GHC</th>";
+            var PartyNote="Click on Party ID for Extra Details";
+            var button ="<input type='button' onclick='return HideTable(this)' value='Hide Party Details >>'></input>";
+            var PartyResult="This party does not exist!";
+      if(obj.user.length>0){
+            var counter=0;
+
+                    while(counter<obj.user.length){
+                    table+="<tr><td>"+obj.user[counter].partyId+"</td><td>"+obj.user[counter].partyName+"</td><td><a href=tel:"+obj.user[counter].phoneNos+">" +obj.user[counter].phoneNos+"</td><td>"+obj.user[counter].cityTown+"</td><td>"+obj.user[counter].partyType+"</td><td>"+Number(obj.user[counter].creditLimit).toFixed(2)+"</td><td>"+Number(obj.user[counter].PaidT90).toFixed(2)+"</td><td>"+Number(obj.user[counter].AccBalance).toFixed(2)+"</td></tr>";
+                      counter++;  
+                }
+            document.getElementById('PartyResult').innerHTML="";
+            document.getElementById('PartyNote').innerHTML=PartyNote;
+            document.getElementById('FirstButton').innerHTML=button;
+      }else{
+        alert(PartyResult);
+        clear();
+          }
+           table+="</table>";
+        if((obj.user[0].partyId)==undefined){
+          alert("Party details loading failed!");
+          clear();
+        }else{
+          document.getElementById("FirstTable").innerHTML=table;
+        }
+           
+           var theTable = $("#FirstTable")[0];
+        if (theTable != null) {
+          for (var i = 1; i < theTable.rows.length; i++) {
+              for (var j = 0; j < 5; j++){
+                   if(theTable.rows[i].cells[j]==theTable.rows[i].cells[0]){
+                    theTable.rows[i].cells[j].onclick = function () {SearchSales(this);SearchTouchPoints(this);};
+                  }
+                  else{
+                   }
+                }
+              }
+         }
+         if(theTable.rows[1]!=null){
+          $(document).on('click', "table td", function(){
+          tempCustomer=($(this).parents("tr").children(":eq(1)").text());
+          });
+       } 
+        currentObject=null; 
+  }
+
+  function SearchSalesComplete(xhr,status){
+         var obj = VerifyServerResponse(xhr,status);
+         var customerName="<center style='color:orange;'><u>Showing Details for"+"  "+tempCustomer+"</u></center>";
+         var note="Click on Sales ID to see Extra Sales Details";
+         var table="<table><th>Sales ID</th><th>Sale Date</th><th>Sales Type</th><th>Amt Owed GHC</th><th>Amt Paid GHC</th><th>Balance GHC</th>";
+         var button ="<input type='button' onclick='return HideTable(this)' value='Hide Last 5 Sales >>'></input>";
+
+      if(obj.user.length>0){         
+         var counter=0;
+         var TotalOwed =0;
+         var TotalPaid = 0;
+         var TotalBalance=0;
+                while(counter<obj.user.length){
+                   table+="<tr><td>"+obj.user[counter].saleID+"</td><td>"+ (obj.user[counter].saleDate)+"</td><td>"+obj.user[counter].saleType+"</td><td>"+Number(obj.user[counter].amountOwed).toFixed(2)+"</td><td>"+Number(obj.user[counter].amountPaid).toFixed(2)+"</td><td>"+Number(obj.user[counter].balance).toFixed(2)+"</td></tr>";
+                   TotalOwed+= Number(obj.user[counter].amountOwed);
+                   TotalPaid+= Number(obj.user[counter].amountPaid);
+                   TotalBalance+= Number(obj.user[counter].balance);
+                   counter++; 
+              }
+
+         table+="<tr><td>"+'<b>Total</b>'+"</td><td>"+''+"</td><td>"+''+"</td><td><b>"+TotalOwed.toFixed(2)+"</b></td><td><b>"+TotalPaid.toFixed(2)+"</b></td><td><b>"+TotalBalance.toFixed(2)+"</b></td></tr>";
+         document.getElementById('customerName').innerHTML=customerName;
+         document.getElementById('SalesNote').innerHTML=note;
+         document.getElementById('SecondButton').innerHTML=button;
+        }else{
+          alert("No Sales & Touch Point result Found!");
+         document.getElementById('customerName').innerHTML="";
+         document.getElementById('SalesNote').innerHTML="";
+         document.getElementById('SecondButton').innerHTML="";
+         document.getElementById('SecondTable').innerHTML=""
+         document.getElementById('ThirdButton').innerHTML="";
+      }
+         table+="</table>";
+          if((obj.user[0].saleID)==undefined){
+          alert("Last 5 sales loading failed!");
+          clear();
+        }else{
+          document.getElementById('SecondTable').innerHTML=table;
+        }
+         
+
+        var theTable = document.getElementById('SecondTable');
+         if (theTable != null) {
+          for (var i = 1; i < theTable.rows.length; i++) { 
+              for (var j = 0; j < 6; j++){
+                   if(theTable.rows[i].cells[j]==theTable.rows[i].cells[0]){
+                    theTable.rows[i].cells[j].onclick = function () {SalesDetails(this); takeSalesID(this);};
+                  }else{
+                  }
+                }
+              }
+         }
+                 currentObject=null; 
+      }
+
+  function SearchTouchPointsComplete(xhr,status){
+        var obj = VerifyServerResponse(xhr,status);  
+        var button ="<input type='button' onclick='return HideTable(this)' value='Hide Touch Points >>'></input>";
+        var NewLine= "<br><p id='TouchResultHide' style='margin-left:25.3%;'></p>";
+        var section = "<section id='thirdTbl'><div id='container'><table align='center' id='ThirdTable'></table></div></section>";
+        var table="<table><th>Date/Time<div>Date/Time</div></th><th>Activity<div>Activity</div></th>";
+          
+    if(obj.user.length>0){
+          var counter=0;
+                while(counter<obj.user.length){
+                   table+="<tr><td>"+(obj.user[counter].notesTime)+"</td><td>"+obj.user[counter].activity+"</td></tr>";
+                   counter++;  
+              }
+        document.getElementById('ThirdButton').innerHTML=button;
+        document.getElementById('ThirdButton').innerHTML += NewLine;
+        document.getElementById('ThirdButton').innerHTML += section;
+        table+="</table>";
+
+        if((obj.user[0].notesTime)==undefined){
+          alert("Touch points loading failed!");
+          clear();
+        }else{
+        document.getElementById("ThirdTable").innerHTML=table;
+      }
+
+      }else{
+      }
+        currentObject=null; 
+  }
+  function takeSalesID(id){
+    IdElement=id.innerHTML;
+    return;
+  }
+  function SalesDetailsComplete(xhr,status){
+        var obj = VerifyServerResponse(xhr,status);
+        NewWindow = window.open("SalesDetails.html", "SalesDetails","resizable,scrollbars,status")
+        var table="<table><th>Date/Time</th><th>Product Name</th><th>Sold Count</th><th>Unit Price GHC</th><th>Discount List</th><th>Product Discount GHC</th><th>Amount GHC</th>";
+        var counter=0;
+        var TotalAmt = 0;
+         GlobalCustomer=obj.user[counter].customer;
+
+        while(counter<obj.user.length){
+            table+="<tr><td>"+(obj.user[counter].saleDate)+"</td><td>"+obj.user[counter].productName+"</td><td>"+obj.user[counter].soldCount+"</td><td>"+Number(obj.user[counter].unitprice).toFixed(2)+"</td><td>"+obj.user[counter].discountList+"</td><td>"+Number(obj.user[counter].productDiscount).toFixed(2)+"</td><td>"+Number(obj.user[counter].Amount).toFixed(2)+"</td></tr>";
+
+            TotalAmt+= Number(obj.user[counter].Amount);
+            counter++;
+          }
+        table+="<tr><td>"+'<b>Total</b>'+"</td><td>"+''+"</td><td>"+''+"</td><td>"+''+"</td><td>"+''+"</td><td>"+''+"</td><td><b>"+TotalAmt.toFixed(2)+"</b></td></tr>";
+        table+="</table>";
+        NewWindow.document.write("<html><head>");
+        NewWindow.document.write("<link rel='shortcut icon' href='images/favicon.ico'>");
+        NewWindow.document.write("<link rel='stylesheet' href='css/style.css'>");
+        NewWindow.document.write("</head><body><center><br>");
+        NewWindow.document.write('Sales ID:  '+IdElement+"<br>"+'Party Name:  '+GlobalCustomer);
+        NewWindow.document.write("<br><br>");
+      
+       if((obj.user[0].productName)==undefined){
+          alert("Sales detail loading failed!");
+          NewWindow.document.close();
+        }else{
+          NewWindow.document.write(table);
+      }
+        NewWindow.document.write("</center></body></html>");
+        
+  }
+
+  function SearchPartyDetails() {
+        var SearchWord= document.getElementById("word").value;
+    if (SearchWord.length>0) {
+        var theUrl="livesearch.php?cmd=1&value="+SearchWord;
+        $.ajax(theUrl, {async:true,complete:SearchPartyDetailsComplete});
+        alert("loading...");
+      }else{
+        document.getElementById('PartyNote').innerHTML="<strong><font color='red'>Search is empty!</font</strong>";
+        }
+  }
+
+  function SearchTouchPoints(tableID) {
+        var theUrl="livesearch.php?cmd=2&value="+tableID.innerHTML;
+        $.ajax(theUrl, {async:true,complete:SearchTouchPointsComplete});
+  }
+
+  function SearchSales(tableID) {
+        var theUrl="livesearch.php?cmd=3&value="+tableID.innerHTML;
+        $.ajax(theUrl, {async:true,complete:SearchSalesComplete});
+        alert("loading...");
+  }
+  function SalesDetails(tableID){
+          var theUrl="livesearch.php?cmd=4&value="+tableID.innerHTML;
+          $.ajax(theUrl, {async:true,complete:SalesDetailsComplete});
+          alert("loading...");
+  }
+  function clear(){
+          document.getElementById("FirstTable").innerHTML="";
+          document.getElementById('PartyNote').innerHTML="";
+          document.getElementById('FirstButton').innerHTML="";
+          document.getElementById("SecondTable").innerHTML="";
+          document.getElementById('SalesNote').innerHTML="";
+          document.getElementById('SecondButton').innerHTML="";
+          document.getElementById('customerName').innerHTML="";
+          document.getElementById('thirdTbl').style.background ="white" ;
+          document.getElementById('thirdTbl').style.border ="2px solid white";
+          document.getElementById('ThirdButton').innerHTML="";
+          document.getElementById("ThirdTable").innerHTML="";
+
+  }
+  function loading(obj){
+         while(obj==null){
+         alert("loading...");
+        }
+  }
+
+  function HideTable(val) {
+           var FirstTable=document.getElementById("FirstTable");
+           var SecondTable=document.getElementById("SecondTable");
+           var ThirdTable=document.getElementById("ThirdTable");
+           var PartyNote=document.getElementById("PartyNote");
+           var SalesNote=document.getElementById("SalesNote");
+           var customerName=document.getElementById("customerName");
+
+           if(val.value=="Hide Party Details >>"){
+               val.value = "Show Party Details >>";
+               FirstTable.style.display="none";
+               PartyNote.style.visibility="hidden";
+               PartyResult.style.visibility="hidden";
+            }else if(val.value=="Show Party Details >>"){
+               val.value = "Hide Party Details >>";
+               FirstTable.style.display="table";
+               PartyNote.style.visibility="visible";
+               PartyResult.style.visibility="visible";
+           }
+
+           if(val.value=="Hide Last 5 Sales >>"){
+              val.value = "Show Last 5 Sales >>";
+              SecondTable.style.display="none";
+              SalesNote.style.visibility="hidden";
+              SalesResult.style.visibility="hidden";
+              customerName.style.visibility="hidden";
+           }else if(val.value=="Show Last 5 Sales >>"){
+              val.value = "Hide Last 5 Sales >>";
+              SecondTable.style.display="table";
+              SalesNote.style.visibility="visible";
+              SalesResult.style.visibility="visible";
+              customerName.style.visibility="visible";
+            }
+
+           if(val.value=="Hide Touch Points >>"){
+               val.value = "Show Touch Points >>";
+               ThirdTable.style.display="none";
+               document.getElementById('thirdTbl').style.background ="white" ;
+               document.getElementById('thirdTbl').style.border ="2px solid white";
+               TouchResult.style.visibility="hidden";
+           }else if(val.value=="Show Touch Points >>"){
+              val.value = "Hide Touch Points >>";
+              ThirdTable.style.display="table";
+              document.getElementById('thirdTbl').style.background ="#00E900" ;
+              document.getElementById('thirdTbl').style.border ="2px solid #00E900";
+              TouchResult.style.visibility="visible";
+           }
+        }
+     </script>
+  </body>
+  </html>
